@@ -87,15 +87,11 @@ function_engineering_pre <- function(data){
   #useless features
   useless_features <- c("CITY", "OCCUPATIONAL", "GRADE", "CHANNEL_NAME", "CHANNEL_CATEGORY")
   
-  #correlation features
-  high_co_features <- c("Total_Order_Amt_BWG", "Act_Order_Amt_BWG")
-  
 #delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
   data <- select(data, -c(CustomerId, if_book_success:other_unsure_call))
   data <- data[!names(data) %in% useless_features]
   data <- data[!names(data) %in% nearZeroVars_numeric_drop]
   data <- data[!names(data) %in% NA_drop]
-  data <- data[!names(data) %in% high_co_features]
   
 return(data)
 }  
@@ -115,8 +111,8 @@ all_data_ticket <- cbind(target_var, complete(mice_model,1))
 set.seed(12)
 # boruta.train <- Boruta(if_ticket_success~., data = all_data_ticket, doTrace = 2)
 
-features_in <- boruta.train$finalDecision[boruta.train$finalDecision != "Rejected"] %>% names
-# features_in <- boruta.train$finalDecision[boruta.train$finalDecision == "Confirmed"] %>% names
+# features_in <- boruta.train$finalDecision[boruta.train$finalDecision != "Rejected"] %>% names
+features_in <- boruta.train$finalDecision[boruta.train$finalDecision == "Confirmed"] %>% names
 
 
 all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
