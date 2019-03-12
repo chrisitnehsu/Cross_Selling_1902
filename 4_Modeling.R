@@ -1,17 +1,9 @@
 model <- c("kknn", "naive_bayes", "svmRadial", "rf", "xgbTree", "nnet", "gbm")
 
-#create fold
-set.seed(12)
-train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
-
 
 #training models
 function_train_evaluation <- function(model){
   
-  preProcess <- preProcess(modeling_data, method = c("center", "scale"))
-  modeling_data <- predict(preProcess, modeling_data)
-  preProcess <- preProcess(processed_test_data, method = c("center", "scale")) #不確定test的標準化參數要用自己的還是用train的
-  processed_test_data <- predict(preProcess, processed_test_data)
   
   model <- train(
     if_ticket_success ~ ., 
@@ -27,8 +19,7 @@ function_train_evaluation <- function(model){
   )
   
   
-  processed_test_data <- select(processed_test_data, -CustomerId)
-  
+
   pred <- predict(model, processed_test_data,  type = "raw")
   conf <- confusionMatrix(pred, processed_test_data$if_ticket_success, mode = "everything",
                           positive = "success")
@@ -51,7 +42,11 @@ function_train_evaluation <- function(model){
 
 
 #bulid model and loop outer CV
+#create fold
 set.seed(12)
+train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
+
+#
 metrics_compare_all <- list()
 model_information_all <- list()
 
@@ -97,6 +92,6 @@ metrics_integration <- metrics_compare_all %>% group_by(rowname) %>%
                                  F1_sd = sd(F1, na.rm = T),
                                  ROC_sd = sd(ROC, na.rm = T)) %>% as.data.frame() %>% arrange(desc(F1_mean))
 metrics_integration$Accu_threshold <- ifelse(metrics_integration$Accuracy_mean >= 0.6, "PASS", "X")
-
+metrics_integration
 
 write.xlsx(metrics_integration, "tt.xlsx")
