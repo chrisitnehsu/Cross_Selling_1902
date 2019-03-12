@@ -106,10 +106,6 @@ all_data$if_ticket_success[all_data$ticket_success_call +
                            all_data$ticket_faliure_call +
                            all_data$book_success_call +
                            all_data$book_faliure_call +
-                           all_data$mag_success_call +
-                           all_data$mag_faliure_call +
-                           all_data$forum_success_call +
-                           all_data$forum_faliure_call +
                            all_data$other_success_call +
                            all_data$other_faliure_call >0] <- "faliure"
 
@@ -119,10 +115,6 @@ all_data$if_book_success[all_data$ticket_success_call +
                              all_data$ticket_faliure_call +
                              all_data$book_success_call +
                              all_data$book_faliure_call +
-                             all_data$mag_success_call +
-                             all_data$mag_faliure_call +
-                             all_data$forum_success_call +
-                             all_data$forum_faliure_call +
                              all_data$other_success_call +
                              all_data$other_faliure_call >0] <- "faliure"
 all_data$if_book_success[all_data$book_success_call >0] <- "success"
@@ -131,10 +123,6 @@ all_data$if_other_success[all_data$ticket_success_call +
                            all_data$ticket_faliure_call +
                            all_data$book_success_call +
                            all_data$book_faliure_call +
-                           all_data$mag_success_call +
-                           all_data$mag_faliure_call +
-                           all_data$forum_success_call +
-                           all_data$forum_faliure_call +
                            all_data$other_success_call +
                            all_data$other_faliure_call >0] <- "faliure"
 all_data$if_other_success[all_data$other_success_call >0] <- "success"
