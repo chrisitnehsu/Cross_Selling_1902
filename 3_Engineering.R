@@ -3,7 +3,8 @@ all_data_ticket <- filter(all_data, !is.na(if_ticket_success))
 
 
 #---------------------------------Feature Engineering---------------------------------
-function_engineering <- function(data){
+set.seed(12)
+function_engineering_pre <- function(data){
   #modify features based on EDA---------------------------------
   #1.Order_State停寄應該合併至斷訂
   data$Order_State_Bw_Mg <- factor(data$Order_State_Bw_Mg, 
@@ -62,19 +63,29 @@ function_engineering <- function(data){
   for(i in index){
     data[i] <- ifelse(data[i] >0, "大於0", "0") %>% as.factor()
   }
-  
+
   
   
   #Feature selection---------------------------------
   data <- select(data, -c('CITY','AREA_NO','EDUCATION','GRADE','OCCUPATIONAL','MARRIED','CHILDREN','Latest_Mag_Bundle','Act_Order_Amt_BWG','Total_Order_Amt_ST','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult','ITEM_COUNT_BIZBOOK','BOOK_ORDER_BEFORE','OTHER_ORDER_BEFORE','Order_State_Bw_Mg','Order_State_ST_PE_Mg','Order_State_ST_Mg','Order_State_EMGBW','Order_State_EMGST','Order_State_GOLF','CHANNEL_NAME','CHANNEL_CATEGORY','identity','Positions'),
                  -c('total_call','ticket_success_call','ticket_faliure_call','ticket_unsure_call','book_success_call','book_faliure_call','book_unsure_call','other_success_call','other_faliure_call','other_unsure_call','Age','Latest_Mag_Units','Total_Order_Amt_BWG','Mag_Order_Amt_BWG','Order_Tenure_ST_PE_Mg','Order_Tenure_EMGBW','Order_Tenure_EMGST','PR','Latest_Order_From_180801'),
                  -c('if_book_success':'last_salesperson'))
-  
-  target_var <- data[c("CustomerId","if_ticket_success")] 
+ 
+
+target_var <- data[c("CustomerId","if_ticket_success")] 
   
   # impute missing values
   data <- mice(data[-c(1,2)], m=1, method = "rf", maxit = 5, seed = 50)
   data <- cbind(target_var,complete(data,1))
+  
+return(data)
+}  
+   
+all_data_ticket <- function_engineering_pre(all_data_ticket)
+
+
+function_engineering <- function(data){ 
+  target_var <- data[c("CustomerId","if_ticket_success")] 
   
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
