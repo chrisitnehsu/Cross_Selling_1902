@@ -126,33 +126,32 @@ set.seed(12)
 # )
 
 
-# rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
-# importance <- randomForest::importance(rf_selection_model) %>% 
-#   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
-# features_in <- importance[c(1:20),1]
-# 
-# all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
-# all_data_ticket <- cbind(target_var, all_data_ticket)
+rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
+importance <- randomForest::importance(rf_selection_model) %>% 
+  as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
+features_in <- importance[c(1:20),1]
+
+all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
+all_data_ticket <- cbind(target_var, all_data_ticket)
 
 
 
 
 #resampling & encoding & scaling
 function_engineering <- function(data){ 
-  train_data_processed <- SMOTE(if_ticket_success~., data = train_data, perc.over = 300, perc.under = 200)
-  target_var_trainSMOTE <- train_data_processed["if_ticket_success"] #resampling train data only bind label 
-  #categorical data encoding. test: OHE or dummy?
-  train_data_processed <- dummyVars(if_ticket_success~.,data = train_data_processed, fullRank = F) %>% 
-    predict(newdata = train_data_processed) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
-  
-  preProcess <- preProcess(train_data_processed, method = c("center", "scale", "pca"), thresh = 0.75)
-  train_data_processed <- predict(preProcess, train_data_processed)
-  
   
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
 
-    data <- train_data_processed
+    data <- SMOTE(if_ticket_success~., data = data, perc.over = 600, perc.under = 180)
+    target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
+    #categorical data encoding. test: OHE or dummy?
+    data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 
+    predict(newdata = data) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
+  
+    preProcess <- preProcess(data, method = c("center", "scale"))
+    data <- predict(preProcess, data)
+    
     
   }else{
     #categorical data encoding. test: OHE or dummy?
@@ -160,6 +159,7 @@ function_engineering <- function(data){
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>%
     predict(newdata = data) %>% as.data.frame() %>% cbind(target_var) #test data bind CID
     
+    preProcess <- preProcess(data, method = c("center", "scale")) #不確定test的標準化參數要用自己的還是用train的
     data <- predict(preProcess, data)
     
     }
