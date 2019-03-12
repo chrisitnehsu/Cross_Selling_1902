@@ -126,7 +126,7 @@ rf_selection_model_test <- train(
 rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = rf_selection_model_test$bestTune[[1]])
 importance <- importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
-features_in <- importance[c(1:15),1]
+features_in <- importance[c(1:25),1]
 
 all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
 all_data_ticket <- cbind(target_var, all_data_ticket)
