@@ -57,39 +57,37 @@ function_engineering_pre <- function(data){
   
   
   #把接近零變異的連續變數轉為0/1類別變數
-  index <- which(names(data) %in% c('Act_Order_Amt_BWG','Total_Order_Amt_ST','Total_Order_Amt_Life','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult','ITEM_COUNT_BIZBOOK','ITEM_COUNT_ARTBOOK','TICKET_ORDER_BEFORE','BOOK_ORDER_BEFORE','OTHER_ORDER_BEFORE'))
+  index <- which(names(data) %in% c('Act_Order_Amt_BWG','Total_Order_Amt_ST','Total_Order_Amt_Life','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult','ITEM_COUNT_BIZBOOK','ITEM_COUNT_ARTBOOK','TICKET_ORDER_BEFORE','BOOK_ORDER_BEFORE','OTHER_ORDER_BEFORE','HAS_ONLINE_ORDER'))
   
   for(i in index){
     data[i] <- ifelse(data[i] >0, "大於0", "0") %>% as.factor()
   }
 
+
+  target_var <- data[c("CustomerId","if_ticket_success")] 
+  data <- select(data, -c(CustomerId:other_unsure_call), -CITY, -OCCUPATIONAL, -GRADE,-CHANNEL_NAME, -CHANNEL_CATEGORY)
+  # impute missing values
+  data <- mice(data, m=1, maxit = 5, seed = 50)
+  data <- cbind(target_var,complete(data,1))
   
   
   #Feature selection---------------------------------
-  data <- select(data, -c('CITY','AREA_NO','EDUCATION','GRADE','OCCUPATIONAL','MARRIED','CHILDREN','Latest_Mag_Bundle','Act_Order_Amt_BWG','Total_Order_Amt_ST','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult','ITEM_COUNT_BIZBOOK','BOOK_ORDER_BEFORE','OTHER_ORDER_BEFORE','Order_State_Bw_Mg','Order_State_ST_PE_Mg','Order_State_ST_Mg','Order_State_EMGBW','Order_State_EMGST','Order_State_GOLF','CHANNEL_NAME','CHANNEL_CATEGORY','identity','Positions'),
-                 -c('total_call','ticket_success_call','ticket_faliure_call','ticket_unsure_call','book_success_call','book_faliure_call','book_unsure_call','other_success_call','other_faliure_call','other_unsure_call','Age','Latest_Mag_Units','Total_Order_Amt_BWG','Mag_Order_Amt_BWG','Order_Tenure_ST_PE_Mg','Order_Tenure_EMGBW','Order_Tenure_EMGST','PR','Latest_Order_From_180801'),
-                 -c('if_book_success':'last_salesperson'))
- 
+  data <- select(data, -c('AREA_NO','EDUCATION','MARRIED','CHILDREN','Latest_Mag_Bundle','Act_Order_Amt_BWG','Total_Order_Amt_ST','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult','ITEM_COUNT_BIZBOOK','BOOK_ORDER_BEFORE','OTHER_ORDER_BEFORE','Order_State_Bw_Mg','Order_State_ST_PE_Mg','Order_State_ST_Mg','Order_State_EMGBW','Order_State_EMGST','Order_State_GOLF','identity','Positions'),
+                 -c('Age','Latest_Mag_Units','Total_Order_Amt_BWG','Mag_Order_Amt_BWG','Order_Tenure_ST_PE_Mg','Order_Tenure_EMGBW','Order_Tenure_EMGST','PR','Latest_Order_From_180801'))
 
-target_var <- data[c("CustomerId","if_ticket_success")] 
-  
-  # impute missing values
-  data <- mice(data[-c(1,2)], m=1, maxit = 5, seed = 50)
-  data <- cbind(target_var,complete(data,1))
-  
 return(data)
 }  
+
 set.seed(12)   
 all_data_ticket <- function_engineering_pre(all_data_ticket)
 
 
 function_engineering <- function(data){ 
-  target_var <- data[c("CustomerId","if_ticket_success")] 
   
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
 
-    data <- SMOTE(if_ticket_success~., data = data[-1], perc.over = 500, perc.under = 120)
+    data <- SMOTE(if_ticket_success~., data = data[-1], perc.over = 300, perc.under = 200)
     target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 
@@ -97,6 +95,7 @@ function_engineering <- function(data){
   
   }else{
     #categorical data encoding. test: OHE or dummy?
+    target_var <- data[c("CustomerId","if_ticket_success")] 
     data <- dummyVars(if_ticket_success~.,data = data[-1], fullRank = F) %>%
     predict(newdata = data) %>% as.data.frame() %>% cbind(target_var[c(1,2)]) #test data bind CID
   }
