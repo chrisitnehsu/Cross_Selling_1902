@@ -55,6 +55,10 @@ function_engineering_pre <- function(data){
                            levels = c("企業負責人","高階主管","中階及基層主管","職員","自僱工作者"),
                            labels = c("企業負責人","高階主管","中階及基層主管","職員","職員"))
   
+  data$MAIL_TO <- factor(data$MAIL_TO,
+                         levels = c("住家","國外","公司"),
+                         labels = c("住家","公司或國外","公司或國外"))
+  
   
   data$HAS_ONLINE_ORDER <- factor(data$HAS_ONLINE_ORDER)
   
@@ -82,12 +86,15 @@ function_engineering_pre <- function(data){
 
   #useless features
   useless_features <- c("CITY", "OCCUPATIONAL", "GRADE", "CHANNEL_NAME", "CHANNEL_CATEGORY")
+  #correlation features
+  high_co_features <- c("Total_Order_Amt_BWG", "Act_Order_Amt_BWG")
   
 #delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
   data <- select(data, -c(CustomerId, if_book_success:other_unsure_call))
   data <- data[!names(data) %in% useless_features]
   data <- data[!names(data) %in% nearZeroVars_numeric_drop]
   data <- data[!names(data) %in% NA_drop]
+  data <- data[!names(data) %in% high_co_features]
   
 return(data)
 }  
@@ -105,34 +112,32 @@ all_data_ticket <- cbind(target_var, complete(mice_model,1))
 #Feature selection---------------------------------
 #rf variable importance filter, mtry use caret's best tune
 set.seed(12)   
-rf_selection_model_test <- train(
-  if_ticket_success ~ .,
-  data = all_data_ticket,
-  method = "rf",
-  metric = "Sens",
-  trControl = trainControl(
-    method = "cv", number = 4,
-    verboseIter = TRUE,
-    summaryFunction = twoClassSummary,
-    classProbs = TRUE
-  )
-)
+# rf_selection_model_test <- train(
+#   if_ticket_success ~ .,
+#   data = all_data_ticket,
+#   method = "rf",
+#   metric = "Sens",
+#   trControl = trainControl(
+#     method = "cv", number = 4,
+#     verboseIter = TRUE,
+#     summaryFunction = twoClassSummary,
+#     classProbs = TRUE
+#   )
+# )
 
 
-rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = rf_selection_model_test$bestTune[[1]])
-importance <- importance(rf_selection_model) %>% 
+rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
+importance <- randomForest::importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
 features_in <- importance[c(1:20),1]
 
 all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
-all_data_ticket <- cbind(target_var, all_data_ticket) #因為前一步又把target拿掉了
+all_data_ticket <- cbind(target_var, all_data_ticket)
 
 
 
-# all_data_ticket <- select(all_data_ticket, -c('AREA_NO','EDUCATION','MARRIED','CHILDREN','Latest_Mag_Bundle','Act_Order_Amt_BWG','Total_Order_Amt_ST','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult','ITEM_COUNT_BIZBOOK','BOOK_ORDER_BEFORE','OTHER_ORDER_BEFORE','Order_State_Bw_Mg','Order_State_ST_PE_Mg','Order_State_ST_Mg','Order_State_EMGBW','Order_State_EMGST','Order_State_GOLF','identity','Positions'),
-#                -c('Age','Latest_Mag_Units','Total_Order_Amt_BWG','Mag_Order_Amt_BWG','Order_Tenure_ST_PE_Mg','Order_Tenure_EMGBW','Order_Tenure_EMGST','PR','Latest_Order_From_180801'))
 
-
+#resampling & encoding & scaling
 function_engineering <- function(data){ 
   
   #if test data, skip resampling phase
