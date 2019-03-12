@@ -75,7 +75,7 @@ function_engineering_pre <- function(data){
 target_var <- data[c("CustomerId","if_ticket_success")] 
   
   # impute missing values
-  data <- mice(data[-c(1,2)], m=1, maxit = 5, seed = 50)
+  data <- mice(data[-c(1,2)], m=1,  maxit = 5, seed = 50)
   data <- cbind(target_var,complete(data,1))
   
 return(data)
@@ -93,13 +93,13 @@ function_engineering <- function(data){
     data <- SMOTE(if_ticket_success~., data = data[-1], perc.over = 300, perc.under = 200)
     target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
-    data <- dummyVars(if_ticket_success~.,data = data, fullRank = T) %>% 
-    predict(newdata = data) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
-  
+    # data <- dummyVars(if_ticket_success~.,data = data, fullRank = T) %>% 
+    # predict(newdata = data) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
+    # 
   }else{
     #categorical data encoding. test: OHE or dummy?
-    data <- dummyVars(if_ticket_success~.,data = data[-1], fullRank = T) %>%
-    predict(newdata = data) %>% as.data.frame() %>% cbind(target_var[c(1,2)]) #test data bind CID
+    # data <- dummyVars(if_ticket_success~.,data = data[-1], fullRank = T) %>%
+    # predict(newdata = data) %>% as.data.frame() %>% cbind(target_var[c(1,2)]) #test data bind CID
   }
   return(data)
 }
