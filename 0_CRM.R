@@ -54,7 +54,7 @@ data <- function(x){
   Newest_tax_ID <- SOT[SOT$GUI_NO!="" & !is.na(SOT$GUI_NO) ,] %>% .[,c("CUST_ID","GUI_NO")] %>% .[duplicated(.$CUST_ID)==0,]
   names(Newest_tax_ID) <- c("CUST_ID","Newest_tax_ID")
   
-  rm <- openxlsx::read.xlsx("V:/1.0_CRM/07.需定期更新資料/直銷商名單.xlsx")
+  rm <- openxlsx::read.xlsx("V:/1.0_CRM/07.Regular Update Data/直銷商名單.xlsx")
   rm_gui <- rm$company_uid
   
   Newest_tax_ID_true <- SOT[SOT$GUI_NO!="" & !is.na(SOT$GUI_NO) & !(SOT$GUI_NO %in% rm_gui),] %>% .[,c("CUST_ID","GUI_NO")] %>% .[duplicated(.$CUST_ID)==0,]
@@ -440,7 +440,7 @@ data <- function(x){
 }
 CRM <- data(x)
 
-CRMBACKUP <- CRM
+# CRMBACKUP <- CRM
 
 #欄位格式設定-----
 CRM$AREA_NO <- factor(CRM$AREA_NO, levels = c("01", "02", "03", "04", "05"), labels = c("北部", "中部", "南部", "東部", "離島"))
@@ -484,6 +484,7 @@ CRM$CHANNEL_CATEGORY <- factor(CRM$CHANNEL_CATEGORY)
 CRM$Latest_Mag_Bundle <- factor(CRM$Latest_Mag_Bundle)
 CRM$HAS_ONLINE_ORDER <- factor(CRM$HAS_ONLINE_ORDER)
 
+class(CRM$Latest_Mag_Units) <- "numeric"
 class(CRM$Order_Tenure_Bw_PE_Mg) <- "numeric"
 class(CRM$Order_Tenure_ST_PE_Mg) <- "numeric"
 class(CRM$Order_Tenure_EMGBW) <- "numeric"
