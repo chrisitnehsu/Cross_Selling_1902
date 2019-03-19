@@ -28,7 +28,7 @@ conn <- odbcConnect("clara", uid="80380", pwd="0932554572")
 
 
 raw_data <- sqlQuery(conn, "SELECT *, case when ProductName in ('世界料理解購聖經','世界最美鐵道','世界遺產全書','地中海史詩套書','套書-Smart出版套書','套書-公孫策說歷史故事','套書-世界料理解購聖經','套書-世界最美鐵道','套書-世界遺產全書','套書-地中海史詩套書','套書-男女健身套書','套書-從黎明到衰頹','套書-掌握世界品味套書','套書-葡萄酒三書','掌握世界品味套書','葡萄酒三書') then '套書'
-			   when ProductName in ('台北亞都麗緻飯店','尖山埤江南渡假村','竹湖麗緻','住宿券-大板根森林溫泉渡假村','住宿券-台中大毅老爺行旅','住宿券-台中長榮桂冠','住宿券-台北西華飯店','住宿券-台北沃田旅店','住宿券-台北亞都麗緻飯店','住宿券-台東GAYA酒店','住宿券-台南遠東大飯店','住宿券-宜蘭傳藝老爺行旅','住宿券-宜蘭綠舞','住宿券-高雄晶英行旅','住宿券-高雄漢來飯店','住宿券-理想大地','住宿券-陽明山麗緻','住宿券-新竹THE ONE南園','住宿券-煙波飯店','住宿券-嘉義觀止','住宿券-馥蘭朵','妖怪村','其他-陽明山麗緻泡湯','宜蘭村卻','東允餐券','煙波飯店','嘉義觀止','嘉儀電器','綠舞觀光飯店','餐券-高雄雅樂廚苑') then '住宿券或餐券'
+			   when ProductName in ('台北亞都麗緻飯店','尖山埤江南渡假村','竹湖麗緻','住宿券-大板根森林溫泉渡假村','住宿券-台中大毅老爺行旅','住宿券-台中長榮桂冠','住宿券-台北西華飯店','住宿券-台北沃田旅店','住宿券-台北亞都麗緻飯店','住宿券-台東GAYA酒店','住宿券-台南遠東大飯店','住宿券-宜蘭傳藝老爺行旅','住宿券-宜蘭綠舞','住宿券-高雄晶英行旅','住宿券-高雄漢來飯店','住宿券-理想大地','住宿券-陽明山麗緻','住宿券-新竹THE ONE南園','住宿券-煙波飯店','住宿券-嘉義觀止','住宿券-馥蘭朵','妖怪村','其他-陽明山麗緻泡湯','宜蘭村卻','東允餐券','煙波飯店','嘉義觀止','嘉儀電器','綠舞觀光飯店','餐券-高雄雅樂廚苑','住宿券-台北萬豪酒店','住宿券-台北美福大飯店','住宿券-台南桂田酒店','住宿券-墾丁嵐翊白紗渡假莊') then '住宿券或餐券'
          when ProductName in ('商業周刊', '智富月刊', '課程', '商周電子', '智富電子') or ProductName LIKE '雜誌%' then '雜誌'   
          when ProductName in ('圓桌-圓桌論壇') then '圓桌論壇'   
          else '其他' end as ProductCategory,
@@ -103,27 +103,15 @@ all_data$last_salesperson <- factor(all_data$last_salesperson)
 #電銷接觸過任一產品,且至少結果一次成功或失敗,即進入data set
 
 all_data$if_ticket_success[all_data$ticket_success_call + 
-                           all_data$ticket_faliure_call +
-                           all_data$book_success_call +
-                           all_data$book_faliure_call +
-                           all_data$other_success_call +
-                           all_data$other_faliure_call >0] <- "faliure"
+                           all_data$ticket_faliure_call  >0] <- "faliure"
 
 all_data$if_ticket_success[all_data$ticket_success_call >0] <- "success"
 
-all_data$if_book_success[all_data$ticket_success_call + 
-                             all_data$ticket_faliure_call +
-                             all_data$book_success_call +
-                             all_data$book_faliure_call +
-                             all_data$other_success_call +
-                             all_data$other_faliure_call >0] <- "faliure"
+all_data$if_book_success[all_data$book_success_call + 
+                             all_data$book_faliure_call  >0] <- "faliure"
 all_data$if_book_success[all_data$book_success_call >0] <- "success"
 
-all_data$if_other_success[all_data$ticket_success_call + 
-                           all_data$ticket_faliure_call +
-                           all_data$book_success_call +
-                           all_data$book_faliure_call +
-                           all_data$other_success_call +
+all_data$if_other_success[all_data$other_success_call + 
                            all_data$other_faliure_call >0] <- "faliure"
 all_data$if_other_success[all_data$other_success_call >0] <- "success"
 
