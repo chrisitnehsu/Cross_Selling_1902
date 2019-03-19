@@ -47,12 +47,12 @@ function_unitable(quo(AREA_NO))
 
 #cross count table
 function_crosstable <- function(x){
-assocstats(table(data$if_ticket_success, x))$table %>% print()
-prop.table(table(data$if_ticket_success, x), margin = 2) %>% print()
-assocstats(table(data$if_ticket_success, x)) %>% print()
+assocstats(table(all_data_ticket$if_ticket_success, x))$table %>% print()
+prop.table(table(all_data_ticket$if_ticket_success, x), margin = 2) %>% print()
+assocstats(table(all_data_ticket$if_ticket_success, x)) %>% print()
 }
 
-function_crosstable(data$if_other_success)
+function_crosstable(all_data_ticket$GENDER)
 
 
 #notes: features issues
@@ -76,7 +76,7 @@ ggplot(filter(all_data_ticket, !is.na(if_ticket_success)), aes(x = GENDER, fill 
 #---------------------------------numerical var.
 
 #univariable analysis
-summary(all_data_ticket$Latest_Order_From_180801)
+summary(all_data_ticket$industry_category)
 
 #rate of greater than 0
 1-(sum(all_data_ticket$PR == 0) / nrow(all_data_ticket))
@@ -126,7 +126,7 @@ findLinearCombos(cor(all_data_ticket[names(all_data_ticket) %in% numerical_var &
 
 #do T-Test to check relationship
 t.test(data = all_data_ticket, 
-       book_success_call
+       Total_Order_Amt_BW
        ~ if_ticket_success, 
        var.equal=TRUE)
 

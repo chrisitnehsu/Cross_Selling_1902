@@ -1,4 +1,4 @@
-model <- c("kknn", "naive_bayes", "svmRadial", "rf", "xgbTree", "nnet", "gbm")
+model <- c("svmRadial", "nnet", "kknn", "naive_bayes",  "rf", "xgbTree", "gbm")
 
 
 #training models
