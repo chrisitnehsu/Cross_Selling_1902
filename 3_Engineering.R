@@ -83,20 +83,20 @@ function_engineering_pre <- function(data){
   #NA% > 40%, but keep Positions
   NA_drop <-  sapply(all_data_ticket,function(x){sum(is.na(x)) / nrow(all_data_ticket)}) %>% sort(decreasing = T) %>% 
     .[.>0.4 & names(.) != "Positions"] %>% names
-
+  
   #useless features
   useless_features <- c("CITY", "OCCUPATIONAL", "GRADE", "CHANNEL_NAME", "CHANNEL_CATEGORY")
   #correlation features
   high_co_features <- c("Total_Order_Amt_BWG", "Act_Order_Amt_BWG")
   
-#delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
+  #delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
   data <- select(data, -c(CustomerId, if_book_success:other_unsure_call))
   data <- data[!names(data) %in% useless_features]
   data <- data[!names(data) %in% nearZeroVars_numeric_drop]
   data <- data[!names(data) %in% NA_drop]
   data <- data[!names(data) %in% high_co_features]
   
-return(data)
+  return(data)
 }  
 
 all_data_ticket <- function_engineering_pre(all_data_ticket)
@@ -142,13 +142,13 @@ function_engineering <- function(data){
   
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
-
-    data <- SMOTE(if_ticket_success~., data = data, perc.over = 600, perc.under = 180)
+    
+    data <- SMOTE(if_ticket_success~., data = data, perc.over = 100, perc.under = 700)
     target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 
-    predict(newdata = data) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
-  
+      predict(newdata = data) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
+    
     preProcess <- preProcess(data, method = c("center", "scale"))
     data <- predict(preProcess, data)
     
@@ -157,12 +157,11 @@ function_engineering <- function(data){
     #categorical data encoding. test: OHE or dummy?
     target_var <- data["if_ticket_success"] 
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>%
-    predict(newdata = data) %>% as.data.frame() %>% cbind(target_var) #test data bind CID
+      predict(newdata = data) %>% as.data.frame() %>% cbind(target_var) #test data bind CID
     
     preProcess <- preProcess(data, method = c("center", "scale")) #不確定test的標準化參數要用自己的還是用train的
     data <- predict(preProcess, data)
     
-    }
+  }
   return(data)
 }
-
