@@ -121,10 +121,10 @@ all_data$if_any_success <- ifelse((all_data$ticket_success_call+
                                               all_data$other_success_call) > 0, "success", "faliure")
 
 
-all_data$if_ticket_success <- factor(all_data$if_ticket_success)
-all_data$if_book_success <- factor(all_data$if_book_success)
-all_data$if_other_success <- factor(all_data$if_other_success)
-all_data$if_any_success <- factor(all_data$if_any_success)
+all_data$if_ticket_success <- factor(all_data$if_ticket_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
+all_data$if_book_success <- factor(all_data$if_book_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
+all_data$if_other_success <- factor(all_data$if_other_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
+all_data$if_any_success <- factor(all_data$if_any_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
 
 
 
