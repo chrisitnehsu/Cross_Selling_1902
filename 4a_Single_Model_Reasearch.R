@@ -10,7 +10,7 @@ model <- train(
   if_ticket_success ~ ., 
   data = modeling_data,
   method = "svmRadial",
-  metric = "Sens",
+  metric = "ROC",
   trControl = trainControl(
     method = "cv", number = 4,
     verboseIter = TRUE,
@@ -41,4 +41,13 @@ pred <- predict(model, processed_test_data,  type = "prob")
 AUC <- colAUC(pred, processed_test_data[["if_ticket_success"]])
 AUC
 
-test_data_w_target <- cbind(test_data, pred)
+metrics <- as.vector(cbind(conf$overall[["Accuracy"]]
+                           ,conf$byClass[["Sensitivity"]]
+                           ,conf$byClass[["Precision"]]
+                           ,conf$byClass[["F1"]]
+                           ,AUC[[1]])) %>% as.data.frame
+rownames(metrics) <- c("Accuracy", "Sensitivity", "Precision", "F1", "ROC")
+names(metrics)[1] <- "svmRadial"
+
+
+# test_data_w_target <- cbind(test_data, pred)
