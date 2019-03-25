@@ -1,14 +1,14 @@
-model <- c("svmRadial", "nnet", "kknn", "naive_bayes",  "rf", "xgbTree", "gbm")
+model_list <- c("svmRadial", "nnet", "kknn", "naive_bayes",  "rf", "xgbTree", "gbm")
 
 
 #training models
-function_train_evaluation <- function(model){
+function_train_evaluation <- function(model_choose){
   
   
   model <- train(
     if_ticket_success ~ ., 
     data = modeling_data,
-    method = model,
+    method = model_choose,
     metric = "Sens",
     trControl = trainControl(
       method = "cv", number = 4,
@@ -35,10 +35,11 @@ function_train_evaluation <- function(model){
                              ,AUC[[1]])) %>% as.data.frame
   
   rownames(metrics) <- c("Accuracy", "Sensitivity", "Precision", "F1", "ROC")
-  names(metrics)[1] <- as.character(substitute(model))
+  names(metrics)[1] <- as.character(substitute(model_choose))
   
   return(list(model = model, conf = conf, metrics = metrics))
 }
+
 
 
 #bulid model and loop outer CV
@@ -60,8 +61,8 @@ for(i in 1:length(train_index)){
   metrics_compare <- data.frame(V1 = c(1,1,1,1,1), row.names = c("Accuracy", "Sensitivity", "Precision", "F1", "ROC"))
   model_information <- list()
   
-      for(j in 1:length(model)){ #warning:length must be >=2, otherwise it will show error
-        new_model_inf <- function_train_evaluation(model = model[j])
+      for(j in 1:length(model_list)){ #warning:length must be >=2, otherwise it will show error
+        new_model_inf <- function_train_evaluation(model_choose = model_list[j])
         metrics_compare <- cbind(metrics_compare, new_model_inf$metrics)
         model_information <- c(model_information, new_model_inf)
         rm(new_model_inf)
@@ -78,7 +79,7 @@ for(i in 1:length(train_index)){
 }
 
 metrics_compare_all <- metrics_compare_all %>% do.call(rbind,.)
-metrics_compare_all$fold <- rep(1:length(train_index), each = length(model)) 
+metrics_compare_all$fold <- rep(1:length(train_index), each = length(model_list)) 
 
 metrics_integration <- metrics_compare_all %>% group_by(rowname) %>% 
                        summarise(Accuracy_mean = mean(Accuracy, na.rm = T),
