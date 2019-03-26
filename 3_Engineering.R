@@ -143,7 +143,7 @@ function_engineering <- function(data){
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
     
-    data <- SMOTE(if_ticket_success~., data = data, perc.over = 100, perc.under = 700)
+    data <- SMOTE(if_ticket_success~., data = data, perc.over = 300, perc.under =200)
     target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 
