@@ -1,10 +1,8 @@
 set.seed(12)
 train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
 
-function_modeling <- function(fold, model_choose){
-train_data <- all_data_ticket[train_index[[fold]],]
-test_data <- all_data_ticket[-train_index[[fold]],]
 
+function_modeling <- function(model_choose){
 modeling_data <- function_engineering(train_data)
 processed_test_data <- function_engineering(test_data)
 
@@ -44,14 +42,16 @@ metrics <- as.vector(cbind(conf$overall[["Accuracy"]]
                            ,AUC[[1]])) %>% as.data.frame
 rownames(metrics) <- c("Accuracy", "Sensitivity", "Precision", "F1", "ROC")
 # names(metrics)[1] <- substitute(fold)
-return(metrics)
-}
-metric <- function_modeling(fold = 1, "svmRadial")
+return(metrics)}
+
+# metric <- function_modeling(fold = 1, "svmRadial")
 
 performance <- data.frame(V1 = c(1,1,1,1,1), row.names = c("Accuracy", "Sensitivity", "Precision", "F1", "ROC"))
 
 for(i in 1:length(train_index)){
-  performance[i] <- function_modeling(fold = i, "svmRadial")
+  train_data <- all_data_ticket[train_index[[i]],]
+  test_data <- all_data_ticket[-train_index[[i]],]
+  performance[i] <- function_modeling("svmRadial")
 }
 performance$avg <- rowMeans(performance)
 # test_data_w_target <- cbind(test_data, pred)
