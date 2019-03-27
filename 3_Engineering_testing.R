@@ -1,7 +1,7 @@
 #filter ticket data
 all_data_ticket <- filter(all_data, !is.na(if_ticket_success))
 # data <- all_data_ticket
-data <- all_data_ticket
+
 #---------------------------------Feature Engineering---------------------------------
 function_engineering_pre <- function(data){
   #modify features based on EDA---------------------------------
@@ -75,14 +75,9 @@ function_engineering_pre <- function(data){
     nearZero_to_01[i] <- ifelse(nearZero_to_01[i] >0, "大於0", "0") %>% as.factor()
   }
   
-  nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_ticket)) %>%
+  
+  nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_ticket)) %>% 
     .[. < 0.05] %>% names
-  
-  
-  for(i in index){
-    data[i] <- ifelse(data[i] >0, "大於0", "0") %>% as.factor()
-  }
-
   
   
   #NA% > 40%, but keep Positions
@@ -105,11 +100,11 @@ function_engineering_pre <- function(data){
 }  
 
 all_data_ticket <- function_engineering_pre(all_data_ticket)
-
+# all_data_ticket <- select(all_data_ticket, -c('industry_category','Positions','Order_State_EMGBW','Order_State_ST_Mg','Order_State_ST_PE_Mg','Order_State_Bw_Mg','Order_State_Bw_PE_Mg','Order_State_EMGST'))
 
 # impute missing values
 set.seed(12)   
-target_var <- all_data_ticket[c("if_ticket_success")] 
+target_var <- all_data_ticket[c("if_ticket_success")]
 mice_model <- mice(all_data_ticket[-1], m=1, maxit = 5, seed = 50)
 all_data_ticket <- cbind(target_var, complete(mice_model,1))
 
@@ -136,7 +131,8 @@ importance <- randomForest::importance(rf_selection_model) %>%
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
 features_in <- importance[c(1:20),1]
 
-all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
+# all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
+all_data_ticket <- select(all_data_ticket, -if_ticket_success)
 all_data_ticket <- cbind(target_var, all_data_ticket)
 
 

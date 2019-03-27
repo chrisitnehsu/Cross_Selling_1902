@@ -1,5 +1,5 @@
 data <- train_data
-data <- SMOTE(if_ticket_success~., data = data, perc.over = 100, perc.under = 700)
+data <- SMOTE(if_ticket_success~., data = data, perc.over = 1000, perc.under = 400)
 sum(data$if_ticket_success == "success") / nrow(data)
 sum(data$if_ticket_success == "faliure") / nrow(data)
 

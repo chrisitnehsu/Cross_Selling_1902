@@ -18,7 +18,6 @@ library(RANN)
 library(tibble)
 library(randomForest)
 library(Boruta)
-library(caretEnsemble)
 
 options(scipen=999)
 
@@ -29,18 +28,18 @@ conn <- odbcConnect("clara", uid="80380", pwd="0932554572")
 
 
 raw_data <- sqlQuery(conn, "SELECT *, case when ProductName in ('世界料理解購聖經','世界最美鐵道','世界遺產全書','地中海史詩套書','套書-Smart出版套書','套書-公孫策說歷史故事','套書-世界料理解購聖經','套書-世界最美鐵道','套書-世界遺產全書','套書-地中海史詩套書','套書-男女健身套書','套書-從黎明到衰頹','套書-掌握世界品味套書','套書-葡萄酒三書','掌握世界品味套書','葡萄酒三書') then '套書'
-			   when ProductName in ('台北亞都麗緻飯店','尖山埤江南渡假村','竹湖麗緻','住宿券-大板根森林溫泉渡假村','住宿券-台中大毅老爺行旅','住宿券-台中長榮桂冠','住宿券-台北西華飯店','住宿券-台北沃田旅店','住宿券-台北亞都麗緻飯店','住宿券-台東GAYA酒店','住宿券-台南遠東大飯店','住宿券-宜蘭傳藝老爺行旅','住宿券-宜蘭綠舞','住宿券-高雄晶英行旅','住宿券-高雄漢來飯店','住宿券-理想大地','住宿券-陽明山麗緻','住宿券-新竹THE ONE南園','住宿券-煙波飯店','住宿券-嘉義觀止','住宿券-馥蘭朵','妖怪村','其他-陽明山麗緻泡湯','宜蘭村卻','東允餐券','煙波飯店','嘉義觀止','嘉儀電器','綠舞觀光飯店','餐券-高雄雅樂廚苑','住宿券-台北萬豪酒店','住宿券-台北美福大飯店','住宿券-台南桂田酒店','住宿券-墾丁嵐翊白紗渡假莊') then '住宿券或餐券'
-         when ProductName in ('商業周刊', '智富月刊', '課程', '商周電子', '智富電子') or ProductName LIKE '雜誌%' then '雜誌'   
-         when ProductName in ('圓桌-圓桌論壇') then '圓桌論壇'   
-         else '其他' end as ProductCategory,
-             case when InclinationName = '成交' then '成交'
-             when InclinationName like '未成交%' then '未成交'
-             else '未確定' end as State
-             FROM [clara].[dbo].[CTI_DW_OBData]
-             where ProductName is not null 
-             and GroupName = '訂戶維運部'
-             and CreatedDate >= '2018-08-01'
-             ", as.is = T)
+                     when ProductName in ('台北亞都麗緻飯店','尖山埤江南渡假村','竹湖麗緻','住宿券-大板根森林溫泉渡假村','住宿券-台中大毅老爺行旅','住宿券-台中長榮桂冠','住宿券-台北西華飯店','住宿券-台北沃田旅店','住宿券-台北亞都麗緻飯店','住宿券-台東GAYA酒店','住宿券-台南遠東大飯店','住宿券-宜蘭傳藝老爺行旅','住宿券-宜蘭綠舞','住宿券-高雄晶英行旅','住宿券-高雄漢來飯店','住宿券-理想大地','住宿券-陽明山麗緻','住宿券-新竹THE ONE南園','住宿券-煙波飯店','住宿券-嘉義觀止','住宿券-馥蘭朵','妖怪村','其他跨售商品-陽明山麗緻泡湯','宜蘭村卻','東允餐券','煙波飯店','嘉義觀止','嘉儀電器','綠舞觀光飯店','餐券-高雄雅樂廚苑','住宿券-台北萬豪酒店','住宿券-台北美福大飯店','住宿券-台南桂田酒店','住宿券-墾丁嵐翊白紗渡假莊') then '住宿券或餐券'
+                     when ProductName in ('商業周刊', '智富月刊', '課程', '商周電子', '智富電子') or ProductName LIKE '雜誌%' then '雜誌'   
+                     when ProductName in ('圓桌-圓桌論壇') then '圓桌論壇'   
+                     else '其他跨售商品' end as ProductCategory,
+                     case when InclinationName = '成交' then '成交'
+                     when InclinationName like '未成交%' then '未成交'
+                     else '未確定' end as State
+                     FROM [clara].[dbo].[CTI_DW_OBData]
+                     where ProductName is not null 
+                     and GroupName = '訂戶維運部'
+                     and CreatedDate >= '2018-08-01'
+                     ", as.is = T)
 
 raw_data$CreatedDate <- ymd_hms(raw_data$CreatedDate)
 
@@ -52,7 +51,7 @@ ticket_success <- raw_data %>% filter(ProductCategory == "住宿券或餐券", S
 book_success <- raw_data %>% filter(ProductCategory == "套書", State == "成交") %>% group_by(CustomerId) %>% summarise(book_success_call = n())
 mag_success <- raw_data %>% filter(ProductCategory == "雜誌", State == "成交") %>% group_by(CustomerId) %>% summarise(mag_success_call = n())
 forum_success <- raw_data %>% filter(ProductCategory == "圓桌論壇", State == "成交") %>% group_by(CustomerId) %>% summarise(forum_success_call = n())
-other_success <- raw_data %>% filter(ProductCategory == "其他", State == "成交") %>% group_by(CustomerId) %>% summarise(other_success_call = n())
+other_success <- raw_data %>% filter(ProductCategory == "其他跨售商品", State == "成交") %>% group_by(CustomerId) %>% summarise(other_success_call = n())
 
 #faliure means not deal or unsure for more than 60 days
 ticket_faliure <- raw_data %>% filter(ProductCategory == "住宿券或餐券", 
@@ -60,10 +59,10 @@ ticket_faliure <- raw_data %>% filter(ProductCategory == "住宿券或餐券",
 book_faliure <- raw_data %>% filter(ProductCategory == "套書", 
                                     (State == "未成交"| (State == "未確定" & from_now >=60))) %>% group_by(CustomerId) %>% summarise(book_faliure_call = n())
 mag_faliure <- raw_data %>% filter(ProductCategory == "雜誌", 
-                                     (State == "未成交"| (State == "未確定" & from_now >=60))) %>% group_by(CustomerId) %>% summarise(mag_faliure_call = n())
+                                   (State == "未成交"| (State == "未確定" & from_now >=60))) %>% group_by(CustomerId) %>% summarise(mag_faliure_call = n())
 forum_faliure <- raw_data %>% filter(ProductCategory == "圓桌論壇", 
                                      (State == "未成交"| (State == "未確定" & from_now >=60))) %>% group_by(CustomerId) %>% summarise(forum_faliure_call = n())
-other_faliure <- raw_data %>% filter(ProductCategory == "其他", 
+other_faliure <- raw_data %>% filter(ProductCategory == "其他跨售商品", 
                                      (State == "未成交"| (State == "未確定" & from_now >=60))) %>% group_by(CustomerId) %>% summarise(other_faliure_call = n())
 
 
@@ -71,7 +70,7 @@ ticket_uncertain <- raw_data %>% filter(ProductCategory == "住宿券或餐券",
 book_uncertain <- raw_data %>% filter(ProductCategory == "套書", State == "未確定", from_now < 60) %>% group_by(CustomerId) %>% summarise(book_unsure_call = n())
 mag_uncertain <- raw_data %>% filter(ProductCategory == "雜誌", State == "未確定", from_now < 60) %>% group_by(CustomerId) %>% summarise(mag_unsure_call = n())
 forum_uncertain <- raw_data %>% filter(ProductCategory == "圓桌論壇", State == "未確定", from_now < 60) %>% group_by(CustomerId) %>% summarise(forum_unsure_call = n())
-other_uncertain <- raw_data %>% filter(ProductCategory == "其他", State == "未確定", from_now < 60) %>% group_by(CustomerId) %>% summarise(other_unsure_call = n())
+other_uncertain <- raw_data %>% filter(ProductCategory == "其他跨售商品", State == "未確定", from_now < 60) %>% group_by(CustomerId) %>% summarise(other_unsure_call = n())
 
 
 last_salesperson <- raw_data %>% arrange(CustomerId, CreatedDate) %>% group_by(CustomerId) %>% summarise(last_salesperson = first(UserName))
@@ -101,32 +100,65 @@ all_data$last_salesperson <- factor(all_data$last_salesperson)
 
 
 #create label
-#電銷接觸過任一產品,且至少結果一次成功或失敗,即進入data set
+#電銷接觸過任一產品,且至少結過一次成功或失敗,即進入data set
 
 all_data$if_ticket_success[all_data$ticket_success_call + 
-                           all_data$ticket_faliure_call  >0] <- "faliure"
+                             all_data$ticket_faliure_call +
+                             all_data$book_success_call +
+                             all_data$book_faliure_call +
+                             all_data$mag_success_call +
+                             all_data$mag_faliure_call +
+                             all_data$forum_success_call +
+                             all_data$forum_faliure_call +
+                             all_data$other_success_call +
+                             all_data$other_faliure_call >0] <- "faliure"
 
 all_data$if_ticket_success[all_data$ticket_success_call >0] <- "success"
 
-all_data$if_book_success[all_data$book_success_call + 
-                             all_data$book_faliure_call  >0] <- "faliure"
+all_data$if_book_success[all_data$ticket_success_call + 
+                           all_data$ticket_faliure_call +
+                           all_data$book_success_call +
+                           all_data$book_faliure_call +
+                           all_data$mag_success_call +
+                           all_data$mag_faliure_call +
+                           all_data$forum_success_call +
+                           all_data$forum_faliure_call +
+                           all_data$other_success_call +
+                           all_data$other_faliure_call >0] <- "faliure"
 all_data$if_book_success[all_data$book_success_call >0] <- "success"
 
-all_data$if_other_success[all_data$other_success_call + 
-                           all_data$other_faliure_call >0] <- "faliure"
+all_data$if_other_success[all_data$ticket_success_call + 
+                            all_data$ticket_faliure_call +
+                            all_data$book_success_call +
+                            all_data$book_faliure_call +
+                            all_data$mag_success_call +
+                            all_data$mag_faliure_call +
+                            all_data$forum_success_call +
+                            all_data$forum_faliure_call +
+                            all_data$other_success_call +
+                            all_data$other_faliure_call >0] <- "faliure"
 all_data$if_other_success[all_data$other_success_call >0] <- "success"
 
-#只看跨售產品
-all_data$if_any_success <- ifelse((all_data$ticket_success_call+
-                                              all_data$book_success_call+ 
-                                              all_data$other_success_call) > 0, "success", "faliure")
+all_data$if_any_success[all_data$ticket_success_call + 
+                            all_data$ticket_faliure_call +
+                            all_data$book_success_call +
+                            all_data$book_faliure_call +
+                            all_data$mag_success_call +
+                            all_data$mag_faliure_call +
+                            all_data$forum_success_call +
+                            all_data$forum_faliure_call +
+                            all_data$other_success_call +
+                            all_data$other_faliure_call >0] <- "faliure"
+
+all_data$if_any_success[all_data$ticket_success_call+
+                        all_data$book_success_call+ 
+                        all_data$other_success_call > 0] <- "success"
 
 
 all_data$if_ticket_success <- factor(all_data$if_ticket_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
 all_data$if_book_success <- factor(all_data$if_book_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
 all_data$if_other_success <- factor(all_data$if_other_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
 all_data$if_any_success <- factor(all_data$if_any_success, levels = c("success", "faliure"), labels = c("success", "faliure"))
-
 
 
 #join CRM
