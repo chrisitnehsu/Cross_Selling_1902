@@ -1,8 +1,10 @@
 set.seed(12)
 train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
-
+model_choose <- "svmRadial"
 
 function_modeling <- function(model_choose){
+  set.seed(12)
+  
 modeling_data <- function_engineering(train_data)
 processed_test_data <- function_engineering(test_data)
 
@@ -12,7 +14,7 @@ model <- train(
   method = model_choose,
   metric = "ROC",
   trControl = trainControl(
-    method = "cv", number = 4,
+    method = "cv", number = 3,
     verboseIter = TRUE,
     summaryFunction = twoClassSummary,
     classProbs = TRUE,
@@ -25,7 +27,7 @@ model <- train(
 
 
 pred <- predict(model, processed_test_data,  type = "prob")
-threshold <- 0.5
+threshold <- 0.85
 pred <- ifelse(pred$success >= threshold, "success", "faliure") %>% factor(levels = c("success", "faliure"),labels = c("success", "faliure"))
 conf <- confusionMatrix(pred, processed_test_data$if_ticket_success, mode = "everything",
                         positive = "success");conf
@@ -54,4 +56,7 @@ for(i in 1:length(train_index)){
   performance[i] <- function_modeling("svmRadial")
 }
 performance$avg <- rowMeans(performance)
-# test_data_w_target <- cbind(test_data, pred)
+performance %>% View
+
+
+test_data_w_target <- cbind(test_data, pred$success)
