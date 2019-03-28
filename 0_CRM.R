@@ -372,7 +372,8 @@ data <- function(x){
                    ELSE '斷訂' END) AS Order_State_GOLF
                    ,AD_PR.PR
                    ,HAS_ONLINE_ORDER.HAS_ONLINE_ORDER
-                   
+                   ,(case when WEB_ACCOUNT_ID = '' or WEB_ACCOUNT_ID is NULL THEN 0 ELSE 1 END) AS HAS_WEB_ACCOUNT
+                   ,(case when EMAIL = '' or EMAIL is NULL THEN 0 ELSE 1 END) AS HAS_EMAIL
                    
                    FROM [B2CDB01].[dbo].[BC_ODR_MASTER] a
                    LEFT OUTER JOIN [B2CDB01].[dbo].[BC_ODR_DELIVERY] c ON (CASE WHEN a.MAIL_TO='1' THEN a.ADDRESS_ID
@@ -476,13 +477,13 @@ CRM$Order_State_GOLF <- factor(CRM$Order_State_GOLF)
 CRM$Latest_Order_Channel_BWG <- factor(CRM$Latest_Order_Channel_BWG)
 CRM$IsGrandRealEstate <- factor(CRM$IsGrandRealEstate)
 CRM$IsGrandCreditCard <- factor(CRM$IsGrandCreditCard)
-CRM$IsGrandCreditCard <- factor(CRM$IsGrandCreditCard)
-CRM$IsGrandCreditCard <- factor(CRM$IsGrandCreditCard)
 CRM$CITY <- factor(CRM$CITY)
 CRM$CHANNEL_NAME <- factor(CRM$CHANNEL_NAME)
 CRM$CHANNEL_CATEGORY <- factor(CRM$CHANNEL_CATEGORY)
 CRM$Latest_Mag_Bundle <- factor(CRM$Latest_Mag_Bundle)
 CRM$HAS_ONLINE_ORDER <- factor(CRM$HAS_ONLINE_ORDER)
+CRM$HAS_EMAIL <- factor(CRM$HAS_EMAIL)
+CRM$HAS_WEB_ACCOUNT <- factor(CRM$HAS_WEB_ACCOUNT)
 
 class(CRM$Latest_Mag_Units) <- "numeric"
 class(CRM$Order_Tenure_Bw_PE_Mg) <- "numeric"
@@ -704,5 +705,5 @@ CRMDB <- CRM
 
 # 
 # 
-save(CRMDB, file="CRMDB_CROSS_SELLING_19022.Rdata")
+save(CRMDB, file="CRMDB_CROSS_SELLING_190327.Rdata")
 

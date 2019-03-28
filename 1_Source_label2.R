@@ -22,7 +22,7 @@ library(Boruta)
 options(scipen=999)
 
 #sales related data only update to 2018/8/01 for modeling
-load("CRMDB_CROSS_SELLING_190222.Rdata")
+load("CRMDB_CROSS_SELLING_190327.Rdata")
 
 conn <- odbcConnect("clara", uid="80380", pwd="0932554572")
 

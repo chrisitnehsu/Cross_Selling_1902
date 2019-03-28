@@ -15,7 +15,7 @@ all_data_ticket <- filter(all_data, !is.na(if_ticket_success))
 
 
 #---------------------------------EDA---------------------------------#
-summary(all_data_ticket$if_ticket_success)
+summary(all_data_ticket)
 
 #NA ratio: CHILDREN:62.2%, EDUCATION: 59.4%, GRADE: 52.0%, Positions 51.5%, MARRIED 45.5%, Age 32.7%,
 #OCCUPATIONAL: 28.2%, industry_category: 17.1%, GENDER: 10.5%
@@ -52,7 +52,7 @@ prop.table(table(all_data_ticket$if_ticket_success, x), margin = 2) %>% print()
 assocstats(table(all_data_ticket$if_ticket_success, x)) %>% print()
 }
 
-function_crosstable(all_data_ticket$GENDER)
+function_crosstable(all_data_ticket$HAS_EMAIL)
 
 
 #notes: features issues

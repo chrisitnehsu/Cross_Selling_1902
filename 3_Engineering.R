@@ -129,7 +129,7 @@ set.seed(12)
 rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
 importance <- randomForest::importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
-features_in <- importance[c(1:20),1]
+features_in <- importance[c(1:21),1]
 
 all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
 all_data_ticket <- cbind(target_var, all_data_ticket)
@@ -143,7 +143,7 @@ function_engineering <- function(data){
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
     
-    data <- SMOTE(if_ticket_success~., data = data, perc.over = 1000, perc.under =400)
+    data <- SMOTE(if_ticket_success~., data = data, perc.over = 300, perc.under =200)
     target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 

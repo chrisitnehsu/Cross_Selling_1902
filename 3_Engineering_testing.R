@@ -85,12 +85,12 @@ function_engineering_pre <- function(data){
     .[.>0.4 & names(.) != "Positions"] %>% names
   
   #useless features
-  useless_features <- c("CITY", "OCCUPATIONAL", "GRADE", "CHANNEL_NAME", "CHANNEL_CATEGORY")
+  useless_features <- c("CITY", "OCCUPATIONAL", "GRADE", "CHANNEL_NAME")
   #correlation features
   high_co_features <- c("Total_Order_Amt_BWG", "Act_Order_Amt_BWG")
   
   #delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
-  data <- select(data, -c(CustomerId, if_book_success:other_unsure_call))
+  data <- select(data, -c(CustomerId, if_book_success:if_any_success, total_call:other_unsure_call))
   data <- data[!names(data) %in% useless_features]
   data <- data[!names(data) %in% nearZeroVars_numeric_drop]
   data <- data[!names(data) %in% NA_drop]
@@ -100,14 +100,54 @@ function_engineering_pre <- function(data){
 }  
 
 all_data_ticket <- function_engineering_pre(all_data_ticket)
-# all_data_ticket <- select(all_data_ticket, -c('industry_category','Positions','Order_State_EMGBW','Order_State_ST_Mg','Order_State_ST_PE_Mg','Order_State_Bw_Mg','Order_State_Bw_PE_Mg','Order_State_EMGST'))
+all_data_ticket$CHANNEL_CATEGORY[is.na(all_data_ticket$CHANNEL_CATEGORY)] <- "續訂2年"
+
+all_data_ticket$last_salesperson <- as.character(all_data_ticket$last_salesperson)
+all_data_ticket$last_salesperson[all_data_ticket$UserName == "張桂珠_old"] <- "張桂珠"
+all_data_ticket$last_salesperson[all_data_ticket$UserName == "黃琪_old"] <- "黃琪"
+
+tt <- all_data_ticket %>% group_by(last_salesperson) %>% count
+tt$ratio <- tt$n / nrow(all_data_ticket)
+tt <- filter(tt, ratio < 0.01) %>% select(last_salesperson)
+all_data_ticket$last_salesperson[all_data_ticket$last_salesperson %in% tt$last_salesperson | is.na(all_data_ticket$last_salesperson)] <- "其他"
+all_data_ticket$last_salesperson <- factor(all_data_ticket$last_salesperson)
+
+all_data_ticket$AREA_NO <- as.character(all_data_ticket$AREA_NO)
+all_data_ticket$AREA_NO[is.na(all_data_ticket$AREA_NO)] <- "空值"
+all_data_ticket$AREA_NO <- factor(all_data_ticket$AREA_NO)
+
+all_data_ticket$GENDER <- as.character(all_data_ticket$GENDER)
+all_data_ticket$GENDER[is.na(all_data_ticket$GENDER)] <- "空值"
+all_data_ticket$GENDER <- factor(all_data_ticket$GENDER)
+
+all_data_ticket$IsGrandCreditCard <- as.character(all_data_ticket$IsGrandCreditCard)
+all_data_ticket$IsGrandCreditCard[is.na(all_data_ticket$IsGrandCreditCard)] <- "0"
+all_data_ticket$IsGrandCreditCard <- factor(all_data_ticket$IsGrandCreditCard)
+
+all_data_ticket$IsGrandRealEstate <- as.character(all_data_ticket$IsGrandRealEstate)
+all_data_ticket$IsGrandRealEstate[is.na(all_data_ticket$IsGrandRealEstate)] <- "0"
+all_data_ticket$IsGrandRealEstate <- factor(all_data_ticket$IsGrandRealEstate)
+
+all_data_ticket$Latest_Mag_Bundle <- as.character(all_data_ticket$Latest_Mag_Bundle)
+all_data_ticket$Latest_Mag_Bundle[is.na(all_data_ticket$Latest_Mag_Bundle)] <- "空值"
+all_data_ticket$Latest_Mag_Bundle <- factor(all_data_ticket$Latest_Mag_Bundle)
+
+all_data_ticket$Positions <- as.character(all_data_ticket$Positions)
+all_data_ticket$Positions[is.na(all_data_ticket$Positions)] <- "空值"
+all_data_ticket$Positions <- factor(all_data_ticket$Positions)
+
+all_data_ticket$industry_category <- as.character(all_data_ticket$industry_category)
+all_data_ticket$industry_category[is.na(all_data_ticket$industry_category)] <- "空值"
+all_data_ticket$industry_category <- factor(all_data_ticket$industry_category)
+
+all_data_ticket <- select(all_data_ticket, -last_salesperson, -CHANNEL_CATEGORY)
+
 
 # impute missing values
 set.seed(12)   
-target_var <- all_data_ticket[c("if_ticket_success")]
+target_var <- all_data_ticket[c("if_ticket_success")] 
 mice_model <- mice(all_data_ticket[-1], m=1, maxit = 5, seed = 50)
 all_data_ticket <- cbind(target_var, complete(mice_model,1))
-
 
 #Feature selection---------------------------------
 #rf variable importance filter, mtry use caret's best tune
@@ -131,8 +171,7 @@ importance <- randomForest::importance(rf_selection_model) %>%
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
 features_in <- importance[c(1:20),1]
 
-# all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
-all_data_ticket <- select(all_data_ticket, -if_ticket_success)
+all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
 all_data_ticket <- cbind(target_var, all_data_ticket)
 
 
@@ -144,7 +183,7 @@ function_engineering <- function(data){
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
     
-    data <- SMOTE(if_ticket_success~., data = data, perc.over = 300, perc.under =200)
+    data <- SMOTE(if_ticket_success~., data = data, perc.over = 300, perc.under = 200)
     target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
     data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 

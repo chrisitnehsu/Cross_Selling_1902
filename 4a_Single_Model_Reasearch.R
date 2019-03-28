@@ -1,11 +1,11 @@
-set.seed(13)
+set.seed(12)
 train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
-model_choose <- "svmRadial"
-train_data <- all_data_ticket[train_index[[1]],]
-test_data <- all_data_ticket[-train_index[[1]],]
+# model_choose <- "svmRadial"
+# train_data <- all_data_ticket[train_index[[1]],]
+# test_data <- all_data_ticket[-train_index[[1]],]
 
 function_modeling <- function(model_choose){
-set.seed(13)
+set.seed(12)
   
 modeling_data <- function_engineering(train_data)
 processed_test_data <- function_engineering(test_data)

@@ -23,7 +23,7 @@ library(caretEnsemble)
 options(scipen=999)
 
 #sales related data only update to 2018/8/01 for modeling
-load("CRMDB_CROSS_SELLING_190222.Rdata")
+load("CRMDB_CROSS_SELLING_190327.Rdata")
 
 conn <- odbcConnect("clara", uid="80380", pwd="0932554572")
 
@@ -41,6 +41,13 @@ raw_data <- sqlQuery(conn, "SELECT *, case when ProductName in ('世界料理解
              and GroupName = '訂戶維運部'
              and CreatedDate >= '2018-08-01'
              ", as.is = T)
+
+sales_person_data <- sqlQuery(conn, "SELECT CustomerId, UserName, CreatedDate
+                  from [clara].[dbo].[CTI_DW_OBData]
+                  where GroupName = '訂戶維運部'and CreatedDate < '2018-08-01'",as.is = T)
+last_salesperson <- sales_person_data %>% arrange(CustomerId, desc(CreatedDate)) %>% group_by(CustomerId) %>% 
+  summarise(last_salesperson = first(UserName))
+
 
 raw_data$CreatedDate <- ymd_hms(raw_data$CreatedDate)
 
@@ -74,7 +81,6 @@ forum_uncertain <- raw_data %>% filter(ProductCategory == "圓桌論壇", State 
 other_uncertain <- raw_data %>% filter(ProductCategory == "其他", State == "未確定", from_now < 60) %>% group_by(CustomerId) %>% summarise(other_unsure_call = n())
 
 
-last_salesperson <- raw_data %>% arrange(CustomerId, CreatedDate) %>% group_by(CustomerId) %>% summarise(last_salesperson = first(UserName))
 
 
 all_data <- distinct(raw_data["CustomerId"]) %>% arrange(CustomerId) %>% 
@@ -136,7 +142,7 @@ all_data$if_any_success <- factor(all_data$if_any_success, levels = c("success",
 
 #join CRM
 all_data <- inner_join(all_data, CRMDB, c("CustomerId" = "CUST_ID"))
-all_data <- select(all_data, c("CustomerId","if_ticket_success","if_book_success","if_other_success","if_any_success",'last_salesperson','total_call','ticket_success_call','ticket_faliure_call','ticket_unsure_call','book_success_call','book_faliure_call','book_unsure_call','other_success_call','other_faliure_call','other_unsure_call','CITY','AREA_NO','EDUCATION','GRADE','OCCUPATIONAL','Age','MARRIED','CHILDREN','GENDER','MAIL_TO','IsGrandRealEstate','IsGrandCreditCard','HAS_ONLINE_ORDER','Latest_Mag_Bundle','Latest_Mag_Units','Total_Order_Amt_BWG','Mag_Order_Amt_BWG','Act_Order_Amt_BWG','Others_Order_Amt_BWG','Total_Order_Amt_BW','Total_Order_Amt_ST','Total_Order_Amt_Life','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult',"ITEM_COUNT_BIZBOOK","ITEM_COUNT_ARTBOOK","TICKET_ORDER_BEFORE","BOOK_ORDER_BEFORE","OTHER_ORDER_BEFORE",'Order_State_Bw_PE_Mg','Order_Tenure_Bw_PE_Mg','Order_State_Bw_Mg','Order_State_ST_PE_Mg','Order_Tenure_ST_PE_Mg','Order_State_ST_Mg','Order_State_EMGBW','Order_Tenure_EMGBW','Order_State_EMGST','Order_Tenure_EMGST','Order_State_GOLF','PR','CHANNEL_NAME','CHANNEL_CATEGORY','Latest_Order_From_180801','IF_USE_TAX','identity','Positions','industry_category'))
+all_data <- select(all_data, c("CustomerId","if_ticket_success","if_book_success","if_other_success","if_any_success",'last_salesperson','total_call','ticket_success_call','ticket_faliure_call','ticket_unsure_call','book_success_call','book_faliure_call','book_unsure_call','other_success_call','other_faliure_call','other_unsure_call','CITY','AREA_NO','EDUCATION','GRADE','OCCUPATIONAL','Age','MARRIED','CHILDREN','GENDER','MAIL_TO','IsGrandRealEstate','IsGrandCreditCard','HAS_ONLINE_ORDER','Latest_Mag_Bundle','Latest_Mag_Units','Total_Order_Amt_BWG','Mag_Order_Amt_BWG','Act_Order_Amt_BWG','Others_Order_Amt_BWG','Total_Order_Amt_BW','Total_Order_Amt_ST','Total_Order_Amt_Life','BW_Order_Amt_Adult','BW_Order_Count_Adult','BW_Order_Amt_Stu','BW_Order_Count_Stu','ST_Order_Amt_Adult','ST_Order_Count_Adult','Alive_Order_Amt_Adult','Alive_Order_Count_Adult',"ITEM_COUNT_BIZBOOK","ITEM_COUNT_ARTBOOK","TICKET_ORDER_BEFORE","BOOK_ORDER_BEFORE","OTHER_ORDER_BEFORE",'Order_State_Bw_PE_Mg','Order_Tenure_Bw_PE_Mg','Order_State_Bw_Mg','Order_State_ST_PE_Mg','Order_Tenure_ST_PE_Mg','Order_State_ST_Mg','Order_State_EMGBW','Order_Tenure_EMGBW','Order_State_EMGST','Order_Tenure_EMGST','Order_State_GOLF','PR','CHANNEL_NAME','CHANNEL_CATEGORY','Latest_Order_From_180801','IF_USE_TAX','identity','Positions','industry_category', 'HAS_EMAIL', 'HAS_WEB_ACCOUNT'))
 
 all_data$Order_Tenure_Bw_PE_Mg[is.na(all_data$Order_Tenure_Bw_PE_Mg)] <- 0
 all_data$Order_Tenure_EMGBW[is.na(all_data$Order_Tenure_EMGBW)] <- 0
