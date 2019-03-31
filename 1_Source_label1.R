@@ -47,7 +47,8 @@ sales_person_data <- sqlQuery(conn, "SELECT CustomerId, UserName, CreatedDate
                   where GroupName = '訂戶維運部'and CreatedDate < '2018-08-01'",as.is = T)
 last_salesperson <- sales_person_data %>% arrange(CustomerId, desc(CreatedDate)) %>% group_by(CustomerId) %>% 
   summarise(last_salesperson = first(UserName))
-
+last_salesperson$UserName[last_salesperson$UserName == "張桂珠_old"] <- "張桂珠"
+last_salesperson$UserName[last_salesperson$UserName == "黃琪_old"] <- "黃琪"
 
 raw_data$CreatedDate <- ymd_hms(raw_data$CreatedDate)
 
