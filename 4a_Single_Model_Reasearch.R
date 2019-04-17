@@ -1,13 +1,7 @@
+model_choose <- "svmRadial"
 set.seed(12)
 train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
-# model_choose <- "svmRadial"
-# train_data <- all_data_ticket[train_index[[1]],]
-# test_data <- all_data_ticket[-train_index[[1]],]
-model_choose <- "svmRadial"
-set.seed(13)
-train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
-train_data <- all_data_ticket[train_index[[1]],]
-test_data <- all_data_ticket[-train_index[[1]],]
+
 
 
 function_modeling <- function(model_choose){
@@ -33,7 +27,6 @@ model <- train(
 #                               threshold = seq(0, 1, by = 0.05),
 #                               final = TRUE);resample_stats
 
-
 pred <- predict(model, processed_test_data,  type = "prob")
 threshold <- 0.5
 pred <- ifelse(pred$success >= threshold, "success", "faliure") %>% factor(levels = c("success", "faliure"),labels = c("success", "faliure"))
@@ -54,19 +47,19 @@ rownames(metrics) <- c("Accuracy", "Sensitivity", "Precision", "F1", "ROC")
 # names(metrics)[1] <- substitute(fold)
 return(metrics)}
 
-# metric <- function_modeling(fold = 1, "svmRadial")
-
+#合併模型結果
 performance <- data.frame(V1 = c(1,1,1,1,1), row.names = c("Accuracy", "Sensitivity", "Precision", "F1", "ROC"))
 
 for(i in 1:length(train_index)){
   train_data <- all_data_ticket[train_index[[i]],]
   test_data <- all_data_ticket[-train_index[[i]],]
+
   performance[i] <- function_modeling("svmRadial")
 }
 performance$avg <- rowMeans(performance)
 performance %>% View
 
-#
+#把預測結果和實際結果放一起看看,測試分級
 test_data_w_target <- data.frame(pred$success, test_data)
 test_data_w_target %>% group_by(if_ticket_success) %>% summarise(avg_pred = mean(pred.success))
 test_data_w_target$cut <- cut(test_data_w_target$pred.success, c(0,0.33,0.66,1))

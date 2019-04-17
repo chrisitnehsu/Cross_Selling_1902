@@ -11,7 +11,7 @@ sum(all_data$if_ticket_success == "success", na.rm = T)/sum(!is.na(all_data$if_t
 
 
 #filter ticket data
-all_data_ticket <- filter(all_data, !is.na(if_ticket_success))
+all_data_ticket <- filter(all_data, !is.na(if_any_success))
 
 
 #---------------------------------EDA---------------------------------#

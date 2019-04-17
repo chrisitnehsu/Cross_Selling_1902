@@ -182,5 +182,7 @@ all_data$Order_Tenure_EMGBW[is.na(all_data$Order_Tenure_EMGBW)] <- 0
 all_data$Order_Tenure_EMGST[is.na(all_data$Order_Tenure_EMGST)] <- 0
 all_data$Order_Tenure_ST_PE_Mg[is.na(all_data$Order_Tenure_ST_PE_Mg)] <- 0
 
+#有幾格是NA的
+all_data$count_NA <- apply(all_data, 1,function(x){sum(is.na(x))})
 
 # rm(list = ls()[!ls() %in% c("raw_data","all_data")])

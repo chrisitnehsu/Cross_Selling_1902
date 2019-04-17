@@ -55,7 +55,6 @@ raw_data$Created_Date <- ymd_hms(raw_data$Created_Date)
 
 raw_data$from_now <- difftime(today(), raw_data$Created_Date, units = "days")
 
-
 contact_count <- raw_data %>% group_by(Cust_ID) %>% summarise(total_call = n())
 ticket_success <- raw_data %>% filter(ProductCategory == "住宿券或餐券", State == "成交") %>% group_by(Cust_ID) %>% summarise(ticket_success_call = n())
 book_success <- raw_data %>% filter(ProductCategory == "套書", State == "成交") %>% group_by(Cust_ID) %>% summarise(book_success_call = n())
@@ -108,6 +107,7 @@ all_data[] <- lapply(all_data, function(x){ifelse(!is.character(x)&is.na(x),0,x)
 all_data$last_salesperson <- factor(all_data$last_salesperson)
 
 
+
 #create label
 #電銷接觸過指定產品,且至少結果一次成功或失敗,才進入data set
 
@@ -151,5 +151,7 @@ all_data$Order_Tenure_EMGBW[is.na(all_data$Order_Tenure_EMGBW)] <- 0
 all_data$Order_Tenure_EMGST[is.na(all_data$Order_Tenure_EMGST)] <- 0
 all_data$Order_Tenure_ST_PE_Mg[is.na(all_data$Order_Tenure_ST_PE_Mg)] <- 0
 
+#有幾格是NA的
+all_data$count_NA <- apply(all_data, 1,function(x){sum(is.na(x))})
 
 rm(list = ls()[!ls() %in% c("raw_data","all_data")])

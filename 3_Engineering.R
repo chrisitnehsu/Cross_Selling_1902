@@ -90,7 +90,7 @@ function_engineering_pre <- function(data){
   high_co_features <- c("Total_Order_Amt_BWG", "Act_Order_Amt_BWG")
   
   #delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
-  data <- select(data, -c(CustomerId, if_book_success:other_unsure_call))
+  data <- select(data, -c(Cust_ID, if_book_success:other_unsure_call))
   data <- data[!names(data) %in% useless_features]
   data <- data[!names(data) %in% nearZeroVars_numeric_drop]
   data <- data[!names(data) %in% NA_drop]
@@ -129,7 +129,7 @@ set.seed(12)
 rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
 importance <- randomForest::importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
-features_in <- importance[c(1:21),1]
+features_in <- importance[c(1:20),1]
 
 all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
 all_data_ticket <- cbind(target_var, all_data_ticket)
