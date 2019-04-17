@@ -1,6 +1,6 @@
 set.seed(12)   
 #train data 為所有資料
-train_data <- all_data_ticket
+train_data <- all_data_valid
 modeling_data <- function_engineering(train_data)
 
 #training models
@@ -16,7 +16,7 @@ model <- train(
 
 #unseen data 定義2中不在train data 的資料, 全都是失敗組, 
 unseen_data <- function_engineering_pre(unseen_data)
-# unseen_data <- unseen_data[names(unseen_data) %in% names(all_data_ticket)]
+# unseen_data <- unseen_data[names(unseen_data) %in% names(all_data_valid)]
 
 target_var_unseen <- unseen_data[c("if_ticket_success")] 
 mice_model <- mice(unseen_data[-1], m=1, maxit = 5, seed = 50)

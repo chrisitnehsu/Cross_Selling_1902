@@ -1,6 +1,6 @@
 #filter ticket data
-all_data_ticket <- filter(all_data, !is.na(if_ticket_success))
-# data <- all_data_ticket
+all_data_valid <- filter(all_data, !is.na(if_ticket_success))
+# data <- all_data_valid
 
 #---------------------------------Feature Engineering---------------------------------
 function_engineering_pre <- function(data){
@@ -76,12 +76,12 @@ function_engineering_pre <- function(data){
   }
   
   
-  nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_ticket)) %>% 
+  nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_valid)) %>% 
     .[. < 0.05] %>% names
   
   
   #NA% > 40%, but keep Positions
-  NA_drop <-  sapply(all_data_ticket,function(x){sum(is.na(x)) / nrow(all_data_ticket)}) %>% sort(decreasing = T) %>% 
+  NA_drop <-  sapply(all_data_valid,function(x){sum(is.na(x)) / nrow(all_data_valid)}) %>% sort(decreasing = T) %>% 
     .[.>0.4 & names(.) != "Positions"] %>% names
   
   #useless features
@@ -99,14 +99,14 @@ function_engineering_pre <- function(data){
   return(data)
 }  
 
-all_data_ticket <- function_engineering_pre(all_data_ticket)
+all_data_valid <- function_engineering_pre(all_data_valid)
 
 
 # impute missing values
 set.seed(12)   
-target_var <- all_data_ticket[c("if_ticket_success")] 
-mice_model <- mice(all_data_ticket[-1], m=1, maxit = 5, seed = 50)
-all_data_ticket <- cbind(target_var, complete(mice_model,1))
+target_var <- all_data_valid[c("if_ticket_success")] 
+mice_model <- mice(all_data_valid[-1], m=1, maxit = 5, seed = 50)
+all_data_valid <- cbind(target_var, complete(mice_model,1))
 
 
 #Feature selection---------------------------------
@@ -114,7 +114,7 @@ all_data_ticket <- cbind(target_var, complete(mice_model,1))
 set.seed(12)   
 # rf_selection_model_test <- train(
 #   if_ticket_success ~ .,
-#   data = all_data_ticket,
+#   data = all_data_valid,
 #   method = "rf",
 #   metric = "Sens",
 #   trControl = trainControl(
@@ -126,13 +126,13 @@ set.seed(12)
 # )
 
 
-rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
+rf_selection_model <- randomForest(if_ticket_success~., data = all_data_valid, mtry = 2)
 importance <- randomForest::importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
 features_in <- importance[c(1:20),1]
 
-all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
-all_data_ticket <- cbind(target_var, all_data_ticket)
+all_data_valid <- all_data_valid[names(all_data_valid) %in% features_in] 
+all_data_valid <- cbind(target_var, all_data_valid)
 
 
 

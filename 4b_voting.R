@@ -1,8 +1,8 @@
 #prepare data
 set.seed(12)
-train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
-train_data <- all_data_ticket[train_index[[1]],]
-test_data <- all_data_ticket[-train_index[[1]],]
+train_index <- createFolds(all_data_valid$if_ticket_success, k = 4, returnTrain = T)
+train_data <- all_data_valid[train_index[[1]],]
+test_data <- all_data_valid[-train_index[[1]],]
 
 modeling_data <- function_engineering(train_data)
 processed_test_data <- function_engineering(test_data)

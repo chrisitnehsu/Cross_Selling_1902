@@ -11,24 +11,24 @@ sum(all_data$if_ticket_success == "success", na.rm = T)/sum(!is.na(all_data$if_t
 
 
 #filter ticket data
-all_data_ticket <- filter(all_data, !is.na(if_any_success))
+all_data_valid <- filter(all_data, !is.na(if_any_success))
 
 
 #---------------------------------EDA---------------------------------#
-summary(all_data_ticket)
+summary(all_data_valid)
 
 #NA ratio: CHILDREN:62.2%, EDUCATION: 59.4%, GRADE: 52.0%, Positions 51.5%, MARRIED 45.5%, Age 32.7%,
 #OCCUPATIONAL: 28.2%, industry_category: 17.1%, GENDER: 10.5%
 function_unitable <- function(x, countNA = F){
-  if(countNA == F) {all_data_ticket <- filter(all_data_ticket, !is.na(!!x))}else{}
-  all_data_ticket %>% group_by(!!x) %>% 
-    count %>% mutate(pct = 100 * n / nrow(all_data_ticket)) %>% arrange(desc(n)) %>% as.data.frame()
+  if(countNA == F) {all_data_valid <- filter(all_data_valid, !is.na(!!x))}else{}
+  all_data_valid %>% group_by(!!x) %>% 
+    count %>% mutate(pct = 100 * n / nrow(all_data_valid)) %>% arrange(desc(n)) %>% as.data.frame()
 }
 
-sapply(all_data_ticket,function(x){sum(is.na(x)) / nrow(all_data_ticket)}) %>% sort(decreasing = T) 
+sapply(all_data_valid,function(x){sum(is.na(x)) / nrow(all_data_valid)}) %>% sort(decreasing = T) 
 
-categorical_var <- sapply(all_data_ticket[-c(1:6)], class) %>% .[. == "factor"] %>% names
-numerical_var <- sapply(all_data_ticket[-c(1:6)], class) %>% .[. != "factor"] %>% names
+categorical_var <- sapply(all_data_valid[-c(1:6)], class) %>% .[. == "factor"] %>% names
+numerical_var <- sapply(all_data_valid[-c(1:6)], class) %>% .[. != "factor"] %>% names
 
 #---------------------------------categorical var.
 #count table, try loop?
@@ -47,12 +47,12 @@ function_unitable(quo(AREA_NO))
 
 #cross count table
 function_crosstable <- function(x){
-assocstats(table(all_data_ticket$if_ticket_success, x))$table %>% print()
-prop.table(table(all_data_ticket$if_ticket_success, x), margin = 2) %>% print()
-assocstats(table(all_data_ticket$if_ticket_success, x)) %>% print()
+assocstats(table(all_data_valid$if_ticket_success, x))$table %>% print()
+prop.table(table(all_data_valid$if_ticket_success, x), margin = 2) %>% print()
+assocstats(table(all_data_valid$if_ticket_success, x)) %>% print()
 }
 
-function_crosstable(all_data_ticket$HAS_EMAIL)
+function_crosstable(all_data_valid$HAS_EMAIL)
 
 
 #notes: features issues
@@ -70,62 +70,62 @@ function_crosstable(all_data_ticket$HAS_EMAIL)
 #O:Total_Order_Amt_Life,ITEM_COUNT_ARTBOOK(nearly),TICKET_ORDER_BEFORE
 
 #categorical data viz
-ggplot(filter(all_data_ticket, !is.na(if_ticket_success)), aes(x = GENDER, fill = if_ticket_success))+
+ggplot(filter(all_data_valid, !is.na(if_ticket_success)), aes(x = GENDER, fill = if_ticket_success))+
   geom_bar(position = "fill")
 
 #---------------------------------numerical var.
 
 #univariable analysis
-summary(all_data_ticket$industry_category)
+summary(all_data_valid$industry_category)
 
 #rate of greater than 0
-1-(sum(all_data_ticket$PR == 0) / nrow(all_data_ticket))
+1-(sum(all_data_valid$PR == 0) / nrow(all_data_valid))
 #跟課程活動有關的變數可能都要刪掉
 #跨售過住宿券/書/其他約1%也考慮刪掉->合併後還是不到2%
 
-ggplot(all_data_ticket, aes(x = 1, y = ITEM_COUNT_BIZBOOK))+
+ggplot(all_data_valid, aes(x = 1, y = ITEM_COUNT_BIZBOOK))+
   geom_boxplot()+
-  scale_y_continuous(breaks=seq(0, max(all_data_ticket$Total_Order_Amt_BWG), 100000))
+  scale_y_continuous(breaks=seq(0, max(all_data_valid$Total_Order_Amt_BWG), 100000))
 
-ggplot(all_data_ticket, aes(x = Total_Order_Amt_BWG))+
+ggplot(all_data_valid, aes(x = Total_Order_Amt_BWG))+
   geom_histogram()+
   scale_x_continuous(breaks=seq(0, 100, 10))
 
 #notes
 #1.買過的書可能要改成0或1
 #2.Latest_Order_From_180801可能要改成numerical
-all_data_ticket$Latest_Order_From_180801 <- as.numeric(all_data_ticket$Latest_Order_From_180801)
+all_data_valid$Latest_Order_From_180801 <- as.numeric(all_data_valid$Latest_Order_From_180801)
 
 #nearZeroVar
 #數值變數為nearzero的, 轉換成0/1變數
 #類別變數為nearzero的, 考慮拿掉, 除非具有明顯商業意義或是高相關
 #拿掉:Order系列除了BW所有
-nearZeroVars <- nearZeroVar(all_data_ticket, saveMetrics = TRUE) %>% .[.$nzv == TRUE,] %>% rownames_to_column()
+nearZeroVars <- nearZeroVar(all_data_valid, saveMetrics = TRUE) %>% .[.$nzv == TRUE,] %>% rownames_to_column()
 nearZeroVars_numeric <- nearZeroVars$rowname[nearZeroVars$rowname %in% numerical_var]
 
-index <- which(names(all_data_ticket) %in% nearZeroVars_numeric)
-nearZero_to_01 <- all_data_ticket[,index]
+index <- which(names(all_data_valid) %in% nearZeroVars_numeric)
+nearZero_to_01 <- all_data_valid[,index]
 for(i in 1:length(nearZero_to_01)){
   nearZero_to_01[i] <- ifelse(nearZero_to_01[i] >0, "大於0", "0") %>% as.factor()
 }
 
 
-nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_ticket)) %>% 
+nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_valid)) %>% 
   .[. < 0.05] %>% names
 
 #correleation analysis, check collinarity
-findCorrelation(cor(all_data_ticket[names(all_data_ticket) %in% numerical_var &
-  !names(all_data_ticket) %in% c("Age", "PR", "Latest_Order_From_180801","Latest_Mag_Units",'Order_Tenure_ST_PE_Mg','Order_Tenure_EMGBW','Order_Tenure_EMGST')]),  names = TRUE)
+findCorrelation(cor(all_data_valid[names(all_data_valid) %in% numerical_var &
+  !names(all_data_valid) %in% c("Age", "PR", "Latest_Order_From_180801","Latest_Mag_Units",'Order_Tenure_ST_PE_Mg','Order_Tenure_EMGBW','Order_Tenure_EMGST')]),  names = TRUE)
 #建議刪掉Total_Order_Amt_BWG(w/Total_Order_Amt_BW), Act_Order_Amt_BWG(w/BW_Order_Amt_Stu)
 
 
 #check Linear Combonations
-findLinearCombos(cor(all_data_ticket[names(all_data_ticket) %in% numerical_var &
-                                    !names(all_data_ticket) %in% c("Age", "PR", "Latest_Order_From_180801")]))
+findLinearCombos(cor(all_data_valid[names(all_data_valid) %in% numerical_var &
+                                    !names(all_data_valid) %in% c("Age", "PR", "Latest_Order_From_180801")]))
 #無發現明顯共線性變數
 
 #do T-Test to check relationship
-t.test(data = all_data_ticket, 
+t.test(data = all_data_valid, 
        Total_Order_Amt_BW
        ~ if_ticket_success, 
        var.equal=TRUE)

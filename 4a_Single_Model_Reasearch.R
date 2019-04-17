@@ -1,6 +1,6 @@
 model_choose <- "svmRadial"
 set.seed(12)
-train_index <- createFolds(all_data_ticket$if_ticket_success, k = 4, returnTrain = T)
+train_index <- createFolds(all_data_valid$if_ticket_success, k = 4, returnTrain = T)
 
 
 
@@ -51,8 +51,8 @@ return(metrics)}
 performance <- data.frame(V1 = c(1,1,1,1,1), row.names = c("Accuracy", "Sensitivity", "Precision", "F1", "ROC"))
 
 for(i in 1:length(train_index)){
-  train_data <- all_data_ticket[train_index[[i]],]
-  test_data <- all_data_ticket[-train_index[[i]],]
+  train_data <- all_data_valid[train_index[[i]],]
+  test_data <- all_data_valid[-train_index[[i]],]
 
   performance[i] <- function_modeling("svmRadial")
 }

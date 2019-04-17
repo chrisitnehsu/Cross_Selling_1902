@@ -1,6 +1,6 @@
 #filter ticket data
-all_data_ticket <- filter(all_data, !is.na(if_ticket_success))
-# data <- all_data_ticket
+all_data_valid <- filter(all_data, !is.na(if_ticket_success))
+# data <- all_data_valid
 
 #---------------------------------Feature Engineering---------------------------------
 function_engineering_pre <- function(data){
@@ -76,12 +76,12 @@ function_engineering_pre <- function(data){
   }
   
   
-  nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_ticket)) %>% 
+  nearZeroVars_numeric_drop <- (sapply(nearZero_to_01, function(x){sum(x == "大於0")}) / nrow(all_data_valid)) %>% 
     .[. < 0.05] %>% names
   
   
   #NA% > 40%, but keep Positions
-  NA_drop <-  sapply(all_data_ticket,function(x){sum(is.na(x)) / nrow(all_data_ticket)}) %>% sort(decreasing = T) %>% 
+  NA_drop <-  sapply(all_data_valid,function(x){sum(is.na(x)) / nrow(all_data_valid)}) %>% sort(decreasing = T) %>% 
     .[.>0.4 & names(.) != "Positions"] %>% names
   
   #useless features
@@ -99,62 +99,62 @@ function_engineering_pre <- function(data){
   return(data)
 }  
 
-all_data_ticket <- function_engineering_pre(all_data_ticket)
-all_data_ticket$CHANNEL_CATEGORY[is.na(all_data_ticket$CHANNEL_CATEGORY)] <- "續訂2年"
+all_data_valid <- function_engineering_pre(all_data_valid)
+all_data_valid$CHANNEL_CATEGORY[is.na(all_data_valid$CHANNEL_CATEGORY)] <- "續訂2年"
 
-all_data_ticket$last_salesperson <- as.character(all_data_ticket$last_salesperson)
-all_data_ticket$last_salesperson[all_data_ticket$UserName == "張桂珠_old"] <- "張桂珠"
-all_data_ticket$last_salesperson[all_data_ticket$UserName == "黃琪_old"] <- "黃琪"
+all_data_valid$last_salesperson <- as.character(all_data_valid$last_salesperson)
+all_data_valid$last_salesperson[all_data_valid$UserName == "張桂珠_old"] <- "張桂珠"
+all_data_valid$last_salesperson[all_data_valid$UserName == "黃琪_old"] <- "黃琪"
 
-tt <- all_data_ticket %>% group_by(last_salesperson) %>% count
-tt$ratio <- tt$n / nrow(all_data_ticket)
+tt <- all_data_valid %>% group_by(last_salesperson) %>% count
+tt$ratio <- tt$n / nrow(all_data_valid)
 tt <- filter(tt, ratio < 0.01) %>% select(last_salesperson)
-all_data_ticket$last_salesperson[all_data_ticket$last_salesperson %in% tt$last_salesperson | is.na(all_data_ticket$last_salesperson)] <- "其他"
-all_data_ticket$last_salesperson <- factor(all_data_ticket$last_salesperson)
+all_data_valid$last_salesperson[all_data_valid$last_salesperson %in% tt$last_salesperson | is.na(all_data_valid$last_salesperson)] <- "其他"
+all_data_valid$last_salesperson <- factor(all_data_valid$last_salesperson)
 
-all_data_ticket$AREA_NO <- as.character(all_data_ticket$AREA_NO)
-all_data_ticket$AREA_NO[is.na(all_data_ticket$AREA_NO)] <- "空值"
-all_data_ticket$AREA_NO <- factor(all_data_ticket$AREA_NO)
+all_data_valid$AREA_NO <- as.character(all_data_valid$AREA_NO)
+all_data_valid$AREA_NO[is.na(all_data_valid$AREA_NO)] <- "空值"
+all_data_valid$AREA_NO <- factor(all_data_valid$AREA_NO)
 
-all_data_ticket$GENDER <- as.character(all_data_ticket$GENDER)
-all_data_ticket$GENDER[is.na(all_data_ticket$GENDER)] <- "空值"
-all_data_ticket$GENDER <- factor(all_data_ticket$GENDER)
+all_data_valid$GENDER <- as.character(all_data_valid$GENDER)
+all_data_valid$GENDER[is.na(all_data_valid$GENDER)] <- "空值"
+all_data_valid$GENDER <- factor(all_data_valid$GENDER)
 
-all_data_ticket$IsGrandCreditCard <- as.character(all_data_ticket$IsGrandCreditCard)
-all_data_ticket$IsGrandCreditCard[is.na(all_data_ticket$IsGrandCreditCard)] <- "0"
-all_data_ticket$IsGrandCreditCard <- factor(all_data_ticket$IsGrandCreditCard)
+all_data_valid$IsGrandCreditCard <- as.character(all_data_valid$IsGrandCreditCard)
+all_data_valid$IsGrandCreditCard[is.na(all_data_valid$IsGrandCreditCard)] <- "0"
+all_data_valid$IsGrandCreditCard <- factor(all_data_valid$IsGrandCreditCard)
 
-all_data_ticket$IsGrandRealEstate <- as.character(all_data_ticket$IsGrandRealEstate)
-all_data_ticket$IsGrandRealEstate[is.na(all_data_ticket$IsGrandRealEstate)] <- "0"
-all_data_ticket$IsGrandRealEstate <- factor(all_data_ticket$IsGrandRealEstate)
+all_data_valid$IsGrandRealEstate <- as.character(all_data_valid$IsGrandRealEstate)
+all_data_valid$IsGrandRealEstate[is.na(all_data_valid$IsGrandRealEstate)] <- "0"
+all_data_valid$IsGrandRealEstate <- factor(all_data_valid$IsGrandRealEstate)
 
-all_data_ticket$Latest_Mag_Bundle <- as.character(all_data_ticket$Latest_Mag_Bundle)
-all_data_ticket$Latest_Mag_Bundle[is.na(all_data_ticket$Latest_Mag_Bundle)] <- "空值"
-all_data_ticket$Latest_Mag_Bundle <- factor(all_data_ticket$Latest_Mag_Bundle)
+all_data_valid$Latest_Mag_Bundle <- as.character(all_data_valid$Latest_Mag_Bundle)
+all_data_valid$Latest_Mag_Bundle[is.na(all_data_valid$Latest_Mag_Bundle)] <- "空值"
+all_data_valid$Latest_Mag_Bundle <- factor(all_data_valid$Latest_Mag_Bundle)
 
-all_data_ticket$Positions <- as.character(all_data_ticket$Positions)
-all_data_ticket$Positions[is.na(all_data_ticket$Positions)] <- "空值"
-all_data_ticket$Positions <- factor(all_data_ticket$Positions)
+all_data_valid$Positions <- as.character(all_data_valid$Positions)
+all_data_valid$Positions[is.na(all_data_valid$Positions)] <- "空值"
+all_data_valid$Positions <- factor(all_data_valid$Positions)
 
-all_data_ticket$industry_category <- as.character(all_data_ticket$industry_category)
-all_data_ticket$industry_category[is.na(all_data_ticket$industry_category)] <- "空值"
-all_data_ticket$industry_category <- factor(all_data_ticket$industry_category)
+all_data_valid$industry_category <- as.character(all_data_valid$industry_category)
+all_data_valid$industry_category[is.na(all_data_valid$industry_category)] <- "空值"
+all_data_valid$industry_category <- factor(all_data_valid$industry_category)
 
-all_data_ticket <- select(all_data_ticket, -last_salesperson, -CHANNEL_CATEGORY)
+all_data_valid <- select(all_data_valid, -last_salesperson, -CHANNEL_CATEGORY)
 
 
 # impute missing values
 set.seed(12)   
-target_var <- all_data_ticket[c("if_ticket_success")] 
-mice_model <- mice(all_data_ticket[-1], m=1, maxit = 5, seed = 50)
-all_data_ticket <- cbind(target_var, complete(mice_model,1))
+target_var <- all_data_valid[c("if_ticket_success")] 
+mice_model <- mice(all_data_valid[-1], m=1, maxit = 5, seed = 50)
+all_data_valid <- cbind(target_var, complete(mice_model,1))
 
 #Feature selection---------------------------------
 #rf variable importance filter, mtry use caret's best tune
 set.seed(12)   
 # rf_selection_model_test <- train(
 #   if_ticket_success ~ .,
-#   data = all_data_ticket,
+#   data = all_data_valid,
 #   method = "rf",
 #   metric = "Sens",
 #   trControl = trainControl(
@@ -166,13 +166,13 @@ set.seed(12)
 # )
 
 
-rf_selection_model <- randomForest(if_ticket_success~., data = all_data_ticket, mtry = 2)
+rf_selection_model <- randomForest(if_ticket_success~., data = all_data_valid, mtry = 2)
 importance <- randomForest::importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
 features_in <- importance[c(1:20),1]
 
-all_data_ticket <- all_data_ticket[names(all_data_ticket) %in% features_in] 
-all_data_ticket <- cbind(target_var, all_data_ticket)
+all_data_valid <- all_data_valid[names(all_data_valid) %in% features_in] 
+all_data_valid <- cbind(target_var, all_data_valid)
 
 
 
