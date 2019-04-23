@@ -1,5 +1,6 @@
 #filter ticket data
-all_data_valid <- filter(all_data, !is.na(if_ticket_success))
+all_data$target_var <- all_data$if_any_success
+all_data_valid <- filter(all_data, !is.na(target_var))
 # data <- all_data_valid
 
 #---------------------------------Feature Engineering---------------------------------
@@ -90,7 +91,7 @@ function_engineering_pre <- function(data){
   high_co_features <- c("Total_Order_Amt_BWG", "Act_Order_Amt_BWG")
   
   #delete 1.known useless features 2.zero variance features & NA% greater than 40%(may cause model unstable)
-  data <- select(data, -c(Cust_ID, if_book_success:other_unsure_call))
+  data <- select(data, -c(Cust_ID, if_ticket_success:other_unsure_call))
   data <- data[!names(data) %in% useless_features]
   data <- data[!names(data) %in% nearZeroVars_numeric_drop]
   data <- data[!names(data) %in% NA_drop]
@@ -104,16 +105,17 @@ all_data_valid <- function_engineering_pre(all_data_valid)
 
 # impute missing values
 set.seed(12)   
-target_var <- all_data_valid[c("if_ticket_success")] 
-mice_model <- mice(all_data_valid[-1], m=1, maxit = 5, seed = 50)
+target_var <- all_data_valid[c("target_var")] 
+mice_model <- mice(all_data_valid[-length(all_data_valid)], m=1, maxit = 5, seed = 50)
 all_data_valid <- cbind(target_var, complete(mice_model,1))
 
+all_data_valid_backup <- all_data_valid
 
 #Feature selection---------------------------------
 #rf variable importance filter, mtry use caret's best tune
 set.seed(12)   
 # rf_selection_model_test <- train(
-#   if_ticket_success ~ .,
+#   target_var ~ .,
 #   data = all_data_valid,
 #   method = "rf",
 #   metric = "Sens",
@@ -125,8 +127,7 @@ set.seed(12)
 #   )
 # )
 
-
-rf_selection_model <- randomForest(if_ticket_success~., data = all_data_valid, mtry = 2)
+rf_selection_model <- randomForest(target_var~., data = all_data_valid, mtry = 2)
 importance <- randomForest::importance(rf_selection_model) %>% 
   as.data.frame() %>% rownames_to_column() %>% arrange(desc(MeanDecreaseGini))
 features_in <- importance[c(1:20),1]
@@ -136,17 +137,16 @@ all_data_valid <- cbind(target_var, all_data_valid)
 
 
 
-
 #resampling & encoding & scaling
 function_engineering <- function(data){ 
   
   #if test data, skip resampling phase
   if(nrow(data) == nrow(train_data)){
     
-    data <- SMOTE(if_ticket_success~., data = data, perc.over = 300, perc.under =200)
-    target_var_trainSMOTE <- data["if_ticket_success"] #resampling train data only bind label 
+    data <- SMOTE(target_var~., data = data, perc.over = 300, perc.under = 200)
+    target_var_trainSMOTE <- data["target_var"] #resampling train data only bind label 
     #categorical data encoding. test: OHE or dummy?
-    data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>% 
+    data <- dummyVars(target_var~.,data = data, fullRank = F) %>% 
       predict(newdata = data) %>% as.data.frame() %>% cbind(target_var_trainSMOTE)
     
     preProcess <- preProcess(data, method = c("center", "scale"))
@@ -155,8 +155,8 @@ function_engineering <- function(data){
     
   }else{
     #categorical data encoding. test: OHE or dummy?
-    target_var <- data["if_ticket_success"] 
-    data <- dummyVars(if_ticket_success~.,data = data, fullRank = F) %>%
+    target_var <- data["target_var"] 
+    data <- dummyVars(target_var~.,data = data, fullRank = F) %>%
       predict(newdata = data) %>% as.data.frame() %>% cbind(target_var) #test data bind CID
     
     preProcess <- preProcess(data, method = c("center", "scale")) #不確定test的標準化參數要用自己的還是用train的
